@@ -6,7 +6,7 @@ class Nothing:
 
     @classmethod
     def toSee(cls, nothing, toSee, here):
-        print(nothing.__name__ + toSee.toSee.__name__ + here.here.__name__)
+        print(nothing.__name__ + toSee.__name__ + here.__name__)
 
     @classmethod
     def here(cls):
