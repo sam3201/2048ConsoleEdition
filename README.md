@@ -2,7 +2,7 @@
 2048 in your console! Plus...
 
 ### Introducing AIs:
-Train an AI
+Train an AI,
 Coming Soon to Blu-ray and DVD
 
 ### Dependcies:
