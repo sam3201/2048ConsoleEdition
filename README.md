@@ -6,4 +6,4 @@ Train an AI
 Coming Soon to Blu-ray and DVD
 
 ### Dependcies:
- Python 3.12~ [Python](www.python.org)
+ Python 3.12~ Python (www.python.org)
