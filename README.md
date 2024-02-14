@@ -1,8 +1,9 @@
 # 2048ConsoleEdition 
-2048 in your console
+2048 in your console! Plus More...
 
-# Python 3.12~
+#Introducing AIs.
+Train an AI
 
-1. download
-2. open your cmd: command prompt application (terminal)
-3. python3 or python 2048.py
+
+
+#Dependcies Python 3.12~
