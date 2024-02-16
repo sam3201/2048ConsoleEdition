@@ -1,7 +1,14 @@
 import math
 import random
 from os import system as cmd
+from os.path import join, isdir
+from os import mkdir
+from os import makedirs as mkdirs
+from os import listdir
 import platform
+from pickle import dump, load, HIGHEST_PROTOCOL
+import uuid
+import atexit
 
 class Game:
     def __init__(self, grid_size=4, ai=None):
@@ -190,9 +197,9 @@ class AI(Game):
             self.output = output
             self._update_game(self.output)
 
-        #EXPERIMENTAL
+        #EXPERIMENTAL TODO "was not gray, he was a little black... dog" - wizards
         keys = {"keys":["action","state","fitness"]}
-        values = [0 for key in keys["keys"]] ##TODO
+        values = [0 for key in keys["keys"]]
 
         self.memory = {}
         for idx, key in enumerate(keys["keys"]):
@@ -254,7 +261,7 @@ class AI(Game):
                 return CAN_RUN
 
         self.clear_console()
-        print(f"Model: {self.id}, action: {output}: Score:{self.score}: HighScore: {self.high_score}\n")
+        print(f"Model: {self.id}, action: {output}: Score:{self.score}: HighScore: {self.high_score}\n Ctr-c to Quit")
 
         if output == 1:
             for col in range(self.grid_size):
@@ -370,8 +377,66 @@ class AI(Game):
             for bias in vec:
                 bias -= loss * output * od
 
+
+def saveAI(ai_name):
+    if not isinstance(ai_name, str):
+        ai_name = str(ai_name)
+
+    save_folder = join("Saved", ai_name)
+    mkdirs(save_folder, exist_ok=True)
+
+    weights_filename = str(uuid.uuid4()) + "weights.pickle"
+    biases_filename = str(uuid.uuid4()) + "biases.pickle"
+
+    with open(join(save_folder, weights_filename), "wb") as f:
+        dump(ai.weights, f, protocol=HIGHEST_PROTOCOL)
+    with open(join(save_folder, biases_filename), "wb") as f:
+        dump(ai.biases, f, protocol=HIGHEST_PROTOCOL)
+
+def loadAI(ai_name):
+    if not isinstance(ai_name, str):
+        ai_name = str(ai_name)
+
+    ai_folder = join("Saved", ai_name)
+    if not isdir(ai_folder):
+        return None
+
+    weights_file = [f for f in listdir(ai_folder) if f == f.endswith("weights.pickle")][0]
+    biases_file = [f for f in listdir(ai_folder) if f == f.endswith("biases.pickle")][0]
+
+    if not weights_file and biases_file:
+        return None
+
+    with open(join(ai_folder, weights_file), "rb") as f:
+        weights = load(f)
+    with open(join(ai_folder, biases_file), "rb") as f:
+        biases = load(f)
+
+    return [weights, biases]
+
+def errorSave():
+    for idx, ai in enumerate(AIs):
+        saveAI(idx)
+
 if __name__ == '__main__':
-    Game().clear_console()
+    atexit.register(errorSave)
+
+    try:
+        if not dir("Saved"):
+            mkdir("Saved")
+    except Exception as e:
+        print(e)
+        exit()
+
+    system = platform.system()
+    if system == 'Windows':
+        cmd('cls')
+    elif system == 'Darwin':
+        cmd('clear')
+    elif system == 'Linux':
+        cmd('clear')
+    else:
+        print('\n' * 20)
 
     while True:
         print()
@@ -389,13 +454,27 @@ if __name__ == '__main__':
         try:
             num_ais = int(num_ais)
             if num_ais <= 0:
-                Game().clear_console()
+                if system == 'Windows':
+                    cmd('cls')
+                elif system == 'Darwin':
+                    cmd('clear')
+                elif system == 'Linux':
+                    cmd('clear')
+                else:
+                    print('\n' * 20)
                 print("Must be at least 1 Ai")
             else:
                 print()
                 break
         except ValueError:
-            Game().clear_console()
+            if system == 'Windows':
+                cmd('cls')
+            elif system == 'Darwin':
+                cmd('clear')
+            elif system == 'Linux':
+                cmd('clear')
+            else:
+                print('\n' * 20)
             print("Must be a number Not of letters: ")
 
     while controller in ["PLAYER", "AI"]:
@@ -420,17 +499,33 @@ if __name__ == '__main__':
 
     AIs = []
     CAN_RUN = True
-    while (controller == "AI") and CAN_RUN:
-        if len(AIs) == 0:
-            for n in range(num_ais):
+    if controller == "AI":
+        for n in range(num_ais):
+            ai_data = loadAI(n)
+            if ai_data:
+                weights, biases = ai_data
+                loaded_ai = AI(n+1, game)
+                loaded_ai_weights = weights
+                loaded_ai_biases = biases
+                AIs.append(loaded_ai)
+            else:
                 AIs.append(AI(n+1, game))
-        for ai in AIs:
-            try:
-                ai.output = ai.forward()
-                CAN_RUN = ai._update_game(ai.output)
-                if not CAN_RUN:
+
+    while (controller == "AI") and CAN_RUN:
+        try:
+            for ai in AIs:
+                try:
+                    ai.output = ai.forward()
+                    CAN_RUN = ai._update_game(ai.output)
+                    if not CAN_RUN:
+                        break
+                except Exception as e:
+                    print(f"ERROR: {e}")
+                    CAN_RUN = False
                     break
-            except Exception as e:
-                print(f"ERROR: {e}")
-                CAN_RUN = False
-                break
+        except KeyboardInterrupt:
+            print("\nProgram interrupted by user. Cleaning up and exiting...")
+            errorSave()
+            exit()
+
+    errorSave()
