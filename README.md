@@ -15,7 +15,7 @@
 - Python 3.12~ (www.python.org) 
    
  -YouVsAi
- -Pygame - pip or pip3 install pygame -homebrewers brew instal pygame 
+ -Pygame - pip or pip3 install pygame -homebreezes brew instal pygame 
  
  
 #NothingToSeeHere - 2048Test
