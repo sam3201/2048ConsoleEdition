@@ -3,6 +3,7 @@
 
 ### ¡Introducing AIs!:
 - Train an AI
+- Save and Load
 
 ### ¡BattleTheAi! ¡(GUI/CUI)!
 - You Vs 2048 Ai CUI
