@@ -1,8 +1,8 @@
 class Nothing:
     def __init__(self):
         self.__class__.__name__ = "Nothing"
-        self.toSee
-        self.here
+        self.toSee = "to see"
+        self.here = "here"
 
     @classmethod
     def toSee(cls, nothing, toSee, here):
