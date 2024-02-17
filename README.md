@@ -8,7 +8,7 @@
 ### ¡BattleTheAi! ¡(GUI/CUI)!
 - You Vs 2048 Ai CUI
 - You vs 2048 Ai w/ pygame? GUI
-- - Coming Soon to Blu-ray and DVD
+- Coming Soon to Blu-ray and DVD
 
 ### !!Dependencies!!
 -All-
