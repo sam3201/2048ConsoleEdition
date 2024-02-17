@@ -17,7 +17,9 @@ Python 3.12~ (www.python.org)
 -YouVsAi-
 Pygame
 - pip3 install pygame
-       -or
+  
+  -or
+  
 Homebreezys
 - brew install pygame 
  
