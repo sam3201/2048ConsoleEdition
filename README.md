@@ -14,12 +14,12 @@
 -All-
 Python 3.12~ (www.python.org) 
    
- -YouVsAi-
- Pygame
- - pip3 install pygame
-          or
+-YouVsAi-
+Pygame
+- pip3 install pygame
+       -or
 Homebreezys
- - brew install pygame 
+- brew install pygame 
  
  
 #NothingToSeeHere - 2048Test
