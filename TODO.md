@@ -1,6 +1,14 @@
-AIS - dn
-Save/Load - dn
+AIS - done
+Save/Load - done
 
-email me for any additional and dumb ideas
-IDK 
+- YouVsAi
+- Literally Everything! from
+- CUI
+- GUI
+- GAME
+- AI
+- PYGAME
+
+- setup.py - done
+
 kys
