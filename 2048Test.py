@@ -15,4 +15,4 @@ class Nothing:
 if __name__ == "main":
 
     __ = Nothing.toSee.here
-    print("suck my ... DADDY")
+
