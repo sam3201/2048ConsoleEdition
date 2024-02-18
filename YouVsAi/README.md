@@ -1,6 +1,9 @@
 -Doesn't work yet
 
+python3 setup.py
 
-Run setup.py
+Console Interface 
+ python3 YouVs2048Console.py
 
-python3 YouVs2048Console.py or YouVs2048Pygame.py
+Graphical Interface
+ python3 YouVs2048Pygame.py
