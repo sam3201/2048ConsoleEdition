@@ -1,1 +1,1 @@
-python3 or python 2048.py
+python3 2048.py
