@@ -179,6 +179,8 @@ class AI(Game):
         self.high_score = 0
         self.score = 0
 
+        self.canPrintBoard = False
+
         self.inputs = self.board
         mean = sum([val for sublst in self.board for val in sublst])//(len(self.board)*len(self.board[0]))
         deviations = [mean - dp for sublst in self.board for dp in sublst]
@@ -335,6 +337,10 @@ class AI(Game):
 
             self.add_ran_tiles()
 
+        if self.canPrintBoard:
+            print(f"ID: {self.id} Board: {self.board} \n")
+            self.print_board()
+
         if round(output) == 0:
             self.output = 0
 
@@ -414,6 +420,17 @@ def loadAI(ai_name):
 
     return [weights, biases]
 
+system = platform.system()
+def clear_console():
+    if system == 'Windows':
+        cmd('cls')
+    elif system == 'Darwin':
+        cmd('clear')
+    elif system == 'Linux':
+        cmd('clear')
+    else:
+        print('\n' * 20)
+    
 def errorSave():
     for idx, ai in enumerate(AIs):
         saveAI(idx)
@@ -428,16 +445,7 @@ if __name__ == '__main__':
         print(e)
         exit()
 
-    system = platform.system()
-    if system == 'Windows':
-        cmd('cls')
-    elif system == 'Darwin':
-        cmd('clear')
-    elif system == 'Linux':
-        cmd('clear')
-    else:
-        print('\n' * 20)
-
+    clear_console()
     while True:
         print()
         controller = input("Enter: PLAYER or AI:\n ")
@@ -450,32 +458,36 @@ if __name__ == '__main__':
 
     while controller == "AI":
         print()
+        print("Enable Board Displaytion? Warning! can slow application\n")
+        canPrint_Board = input("yes to accept or no to decline:\n")
+        try:
+            canPrint_Board = canPrint_Board.upper()
+            if canPrint_Board in ["YES", "NO"]:
+                if canPrint_Board == "YES":
+                    canPrint_Board = True
+                elif canPrint_Board == "No":
+                    canPrint_Board = False
+                clear_console()
+            else:
+                clear_console() 
+                print(f"{canPrint_Board} is Not an Option!"}
+        except ValueError:
+            clear_console()
+            print("Numbers Not Allowed!")
+        
+        print()
         num_ais = input("Enter Number of Ais to Run:\n ")
         try:
             num_ais = int(num_ais)
             if num_ais <= 0:
-                if system == 'Windows':
-                    cmd('cls')
-                elif system == 'Darwin':
-                    cmd('clear')
-                elif system == 'Linux':
-                    cmd('clear')
-                else:
-                    print('\n' * 20)
+                clear_console()
                 print("Must be at least 1 Ai")
             else:
                 print()
                 break
         except ValueError:
-            if system == 'Windows':
-                cmd('cls')
-            elif system == 'Darwin':
-                cmd('clear')
-            elif system == 'Linux':
-                cmd('clear')
-            else:
-                print('\n' * 20)
-            print("Must be a number Not of letters: ")
+            clear_console()
+            print("Number cannot be in word form or NaN")
 
     while controller in ["PLAYER", "AI"]:
         print()
@@ -505,11 +517,14 @@ if __name__ == '__main__':
             if ai_data:
                 weights, biases = ai_data
                 loaded_ai = AI(n+1, game)
+                loaded_ai.canPrintBoard = canPrint_Board
                 loaded_ai_weights = weights
                 loaded_ai_biases = biases
                 AIs.append(loaded_ai)
             else:
-                AIs.append(AI(n+1, game))
+                saved_ai = AI(n+1, game)
+                saved_ai.canPrintBoard = canPrint_Board
+                AIs.append(saved_ai)
 
     while (controller == "AI") and CAN_RUN:
         try:
