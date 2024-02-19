@@ -439,6 +439,7 @@ def clear_console():
         print('\n' * 20)
 
 def errorSave():
+    cmd("rm -rf Saved")
     for idx, ai in enumerate(AIs):
         saveAI(idx)
 
