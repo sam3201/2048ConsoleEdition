@@ -30,18 +30,7 @@ class Game:
                     if not self.board[ranX][ranY] == 2:
                         self.board[ranX][ranY] = 4
 
-        self.clear_console()
-
-    def clear_console(self):
-        system = platform.system()
-        if system == 'Windows':
-            cmd('cls')
-        elif system == 'Darwin':
-            cmd('clear')
-        elif system == 'Linux':
-            cmd('clear')
-        else:
-            print('\n' * 20)
+        clearCMD()
 
     def print_board(self):
         for row in self.board:
@@ -83,8 +72,7 @@ class Game:
             CAN_RUN = False
             return CAN_RUN
 
-
-        self.clear_console()
+        clearCMD()
         if self.can_PrintBoard:
             self.print_board()
         command = self.get_direction()
@@ -241,17 +229,6 @@ class AI(Game):
             output = 0
 
         return output
-
-    def clear_console(self):
-        system = platform.system()
-        if system == 'Windows':
-            cmd('cls')
-        elif system == 'Darwin':
-            cmd('clear')
-        elif system == 'Linux':
-            cmd('clear')
-        else:
-            print('\n' * 20)
 
     def _update_game(self, output):
         if not any(0 in sublst for sublst in self.board):
@@ -410,15 +387,14 @@ def save_ais(session_name, num_ais):
             save_ai(AI(names[idx], Game()), session_name, ai_name)
 
 system = platform.system()
-def clear_console():
-    if system == 'Windows':
-        cmd('cls')
-    elif system == 'Darwin':
-        cmd('clear')
-    elif system == 'Linux':
-        cmd('clear')
-    else:
-        print('\n' * 20)
+if system == 'Windows':
+    clearCMD = lambda: cmd('cls')
+elif system == 'Darwin':
+    clearCMD = lambda: cmd('clear')
+elif system == 'Linux':
+    clearCMD = lambda: cmd('clear')
+else:
+    clearCMD = lambda: print('\n' * 20)
 
 def forceSave():
     try:
@@ -437,7 +413,7 @@ if __name__ == '__main__':
         print(e)
         exit()
 
-    clear_console()
+    clearCMD()
     print("2048: Full Screen Your Console\n")
     while True:
         print()
@@ -474,10 +450,10 @@ if __name__ == '__main__':
                     ai.biases = biases
                     AIs.append(ai)
             else:
-                clear_console()
+                clearCMD()
                 break
         else:
-            clear_console()
+            clearCMD()
             print(f"Invalid Input!")
 
     if canLoad == "YES":
@@ -485,7 +461,7 @@ if __name__ == '__main__':
         try:
             num_ais = int(num_ais)
         except ValueError:
-            clear_console()
+            clearCMD()
             print("Number cannot be in word form or NaN")
 
         session_name = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -496,7 +472,7 @@ if __name__ == '__main__':
         try:
             num_ais = int(num_ais)
             if num_ais <= 0:
-                clear_console()
+                clearCMD()
                 print("Must be at least 1 Ai")
             else:
                 session_name = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -506,9 +482,9 @@ if __name__ == '__main__':
                     ai_name = input(f"Enter name for AI {idx+1} (Press Enter for default): ") or f"AI_{idx+1}"
                     names.append(ai_name)
                     AIs.append(AI(ai_name, Game()))
-                clear_console()
+                clearCMD()
         except ValueError:
-            clear_console()
+            clearCMD()
             print("Number cannot be in word form or NaN")
 
     while controller in ["PLAYER", "AI"]:
@@ -532,13 +508,15 @@ if __name__ == '__main__':
         CAN_RUN = game.update_game()
 
     CAN_RUN = True
+    if controller == "AI":
+        for output in random.sample([0, -1, 1, -0.5, 0.5] , len([0, -1, 1, -0.5, 0.5])):
+            for ai in AIs:
+                ai.output = output
+                ai._update_game(ai.output)
+
     while (controller == "AI") and CAN_RUN:
         try:
             for ai in AIs:
-                for output in random.sample([0, -1, 1, -0.5, 0.5] , len([0, -1, 1, -0.5, 0.5])):
-                    ai.output = output
-                    ai._update_game(ai.output)
-                    break
                 try:
                     ai.output = ai.forward()
                     CAN_RUN = ai._update_game(ai.output)
@@ -549,7 +527,7 @@ if __name__ == '__main__':
                     print(f"ERROR: {e}")
                     CAN_RUN = False
                     break
-            clear_console()
+            clearCMD()
         except KeyboardInterrupt:
             print("\nProgram interrupted by user. Cleaning up and exiting...")
             save_ais(session_name, num_ais)
