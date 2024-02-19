@@ -1,13 +1,13 @@
 import math
 import random
 from os import system as cmd
-from os.path import join, isdir
+from os.path import join, isdir, exists
 from os import mkdir
 from os import makedirs as mkdirs
 from os import listdir
 import platform
 from pickle import dump, load, HIGHEST_PROTOCOL
-import uuid
+import datetime
 import atexit
 
 class Game:
@@ -16,6 +16,7 @@ class Game:
         self.grid_size = grid_size
 
         self.board = [[0 if row == random.randint(1,9) else 4 if row == random.randint(1,100) else 0 for row in range(self.grid_size) ] for _ in range(self.grid_size)]
+        self.can_PrintBoard = True
 
         if not 0 in self.board:
             for _ in range(random.randint(1, 3)):
@@ -43,7 +44,6 @@ class Game:
             print('\n' * 20)
 
     def print_board(self):
-        print("2048: Please Full Screen Your Console")
         for row in self.board:
             for item in row:
                 print(str(item) + " ", end=" ")
@@ -85,8 +85,8 @@ class Game:
 
 
         self.clear_console()
-        print()
-        self.print_board()
+        if self.can_PrintBoard:
+            self.print_board()
         command = self.get_direction()
 
         if  command in ["W", "UP", "U"]:
@@ -170,10 +170,10 @@ class Game:
 
 class AI(Game):
     def __init__(self, id, game):
-
         self.id = id
 
         self.game = game
+        self.can_PrintBoard = False
         self.board = game.board
         self.grid_size = len(self.board)
 
@@ -193,10 +193,6 @@ class AI(Game):
         stddev = math.sqrt(variance)
         self.weights = [[random.gauss(mean, stddev) for _ in range(self.grid_size)] for _ in range(self.grid_size)]
         self.biases = [[random.randint(-1, 1) for _ in range(self.grid_size)] for _ in range(self.grid_size)]
-
-        for output in random.sample([0, -1, 1, -0.5, 0.5] , len([0, -1, 1, -0.5, 0.5])):
-            self.output = output
-            self._update_game(self.output)
 
         #EXPERIMENTAL TODO "was not gray, he was a little black... dog" - wizards
         keys = {"keys":["action","state","fitness"]}
@@ -346,7 +342,8 @@ class AI(Game):
 
             self.add_ran_tiles()
 
-            self.print_board()
+            if self.can_PrintBoard:
+                self.print_board()
 
         if round(output) == 0:
             self.output = 0
@@ -390,42 +387,27 @@ class AI(Game):
             for bias in vec:
                 bias -= loss * output * od
 
-
-def saveAI(ai_name):
-    if not isinstance(ai_name, str):
-        ai_name = str(ai_name)
-
-    save_folder = join("Saved", ai_name)
+def save_ai(ai, session_name, ai_name):
+    save_folder = join("Saved", session_name, ai_name)
     mkdirs(save_folder, exist_ok=True)
-
-    weights_filename = str(uuid.uuid4()) + "weights.pickle"
-    biases_filename = str(uuid.uuid4()) + "biases.pickle"
-
-    with open(join(save_folder, weights_filename), "wb") as f:
+    with open(join(save_folder, "weights.pickle"), "wb") as f:
         dump(ai.weights, f, protocol=HIGHEST_PROTOCOL)
-    with open(join(save_folder, biases_filename), "wb") as f:
+    with open(join(save_folder, "biases.pickle"), "wb") as f:
         dump(ai.biases, f, protocol=HIGHEST_PROTOCOL)
 
-def loadAI(ai_name):
-    if not isinstance(ai_name, str):
-        ai_name = str(ai_name)
-
-    ai_folder = join("Saved", ai_name)
-    if not isdir(ai_folder):
-        return None
-
-    weights_file = [f for f in listdir(ai_folder) if f == f.endswith("weights.pickle")][0]
-    biases_file = [f for f in listdir(ai_folder) if f == f.endswith("biases.pickle")][0]
-
-    if not weights_file and biases_file:
-        return None
-
-    with open(join(ai_folder, weights_file), "rb") as f:
+def load_ai(session_name, ai_name):
+    save_folder = join("Saved", session_name, ai_name)
+    weights_file = join(save_folder, "weights.pickle")
+    biases_file = join(save_folder, "biases.pickle")
+    with open(weights_file, "rb") as f:
         weights = load(f)
-    with open(join(ai_folder, biases_file), "rb") as f:
+    with open(biases_file, "rb") as f:
         biases = load(f)
+    return weights, biases
 
-    return [weights, biases]
+def save_ais(session_name, num_ais):
+    for idx in range(num_ais):
+            save_ai(AI(names[idx], Game()), session_name, ai_name)
 
 system = platform.system()
 def clear_console():
@@ -438,13 +420,15 @@ def clear_console():
     else:
         print('\n' * 20)
 
-def errorSave():
-    cmd("rm -rf Saved")
-    for idx, ai in enumerate(AIs):
-        saveAI(idx)
+def forceSave():
+    try:
+        save_ais(session_name, num_ais)
+    except Exception:
+        print("Ais Not Instantiated. Cleaning Up... ")
+        return
 
 if __name__ == '__main__':
-    atexit.register(errorSave)
+    atexit.register(forceSave)
 
     try:
         if not dir("Saved"):
@@ -454,27 +438,75 @@ if __name__ == '__main__':
         exit()
 
     clear_console()
+    print("2048: Full Screen Your Console\n")
     while True:
         print()
-        controller = input("Enter: PLAYER or AI:\n ")
+        controller = input("Enter: PLAYER or AI:\n")
         controller = controller.upper()
 
         if controller in ["PLAYER", "AI"]:
             break
         else:
-             print(f"{controller} is not allowed")
+            print(f"Invalid Input!")
 
     while controller == "AI":
-        print()
-        num_ais = input("Enter Number of Ais to Run:\n ")
+        canLoad = input("Do you want to Load a previous session? Enter (Yes or No)\n")
+        canLoad = canLoad.upper()
+        if canLoad in ["YES", "NO"]:
+            if canLoad == "YES":
+                sessions = listdir("Saved")
+                print("Available sessions:\n")
+                for idx, session in enumerate(sessions):
+                    print(f"{idx}: {session}")
+                session_idx = int(input("Enter session number to load:\n"))
+                session_name = sessions[session_idx]
+                ai_folders = listdir(join("Saved", session_name))
+                print("Available AIs in this session:\n")
+                for idx, ai_folder in enumerate(ai_folders):
+                    print(f"{idx}: {ai_folder}")
+                ai_indices = list(map(int, input("Enter indices of AIs to load (comma-separated): ").split(",")))
+                selected_ais = [ai_folders[i] for i in ai_indices]
+                AIs = []
+                for ai_name in selected_ais:
+                    weights, biases = load_ai(session_name, ai_name)
+                    ai = AI(ai_name, Game())
+                    ai.weights = weights
+                    ai.biases = biases
+                    AIs.append(ai)
+            else:
+                clear_console()
+                break
+        else:
+            clear_console()
+            print(f"Invalid Input!")
+
+    if canLoad == "YES":
+        num_ais = input("Enter (Additional) Number of Ais to Run:\n")
+        try:
+            num_ais = int(num_ais)
+        except ValueError:
+            clear_console()
+            print("Number cannot be in word form or NaN")
+
+        session_name = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        save_ais(session_name, num_ais)
+
+    else:
+        num_ais = input("Enter Number of Ais to Run:\n")
         try:
             num_ais = int(num_ais)
             if num_ais <= 0:
                 clear_console()
                 print("Must be at least 1 Ai")
             else:
-                print()
-                break
+                session_name = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                AIs = []
+                names = []
+                for idx in range(num_ais):
+                    ai_name = input(f"Enter name for AI {idx+1} (Press Enter for default): ") or f"AI_{idx+1}"
+                    names.append(ai_name)
+                    AIs.append(AI(ai_name, Game()))
+                clear_console()
         except ValueError:
             clear_console()
             print("Number cannot be in word form or NaN")
@@ -499,24 +531,14 @@ if __name__ == '__main__':
     while (controller == "PLAYER") and CAN_RUN:
         CAN_RUN = game.update_game()
 
-    AIs = []
     CAN_RUN = True
-    if controller == "AI":
-        for n in range(num_ais):
-            ai_data = loadAI(n)
-            if ai_data:
-                weights, biases = ai_data
-                loaded_ai = AI(n+1, game)
-                loaded_ai_weights = weights
-                loaded_ai_biases = biases
-                AIs.append(loaded_ai)
-            else:
-                saved_ai = AI(n+1, game)
-                AIs.append(saved_ai)
-
     while (controller == "AI") and CAN_RUN:
         try:
             for ai in AIs:
+                for output in random.sample([0, -1, 1, -0.5, 0.5] , len([0, -1, 1, -0.5, 0.5])):
+                    ai.output = output
+                    ai._update_game(ai.output)
+                    break
                 try:
                     ai.output = ai.forward()
                     CAN_RUN = ai._update_game(ai.output)
@@ -530,7 +552,7 @@ if __name__ == '__main__':
             clear_console()
         except KeyboardInterrupt:
             print("\nProgram interrupted by user. Cleaning up and exiting...")
-            errorSave()
+            save_ais(session_name, num_ais)
             exit()
 
-    errorSave()
+    forceSave()
