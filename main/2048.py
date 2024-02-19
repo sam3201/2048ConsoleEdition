@@ -83,6 +83,7 @@ class Game:
             CAN_RUN = False
             return CAN_RUN
 
+
         self.clear_console()
         print()
         self.print_board()
@@ -179,8 +180,6 @@ class AI(Game):
         self.high_score = 0
         self.score = 0
 
-        self.canPrintBoard = False
-
         self.inputs = self.board
         mean = sum([val for sublst in self.board for val in sublst])//(len(self.board)*len(self.board[0]))
         deviations = [mean - dp for sublst in self.board for dp in sublst]
@@ -247,6 +246,17 @@ class AI(Game):
 
         return output
 
+    def clear_console(self):
+        system = platform.system()
+        if system == 'Windows':
+            cmd('cls')
+        elif system == 'Darwin':
+            cmd('clear')
+        elif system == 'Linux':
+            cmd('clear')
+        else:
+            print('\n' * 20)
+
     def _update_game(self, output):
         if not any(0 in sublst for sublst in self.board):
             total_score = self.summed_board(self.board)
@@ -262,7 +272,6 @@ class AI(Game):
                 CAN_RUN = True
                 return CAN_RUN
 
-        self.clear_console()
         print(f"Model: {self.id}, action: {output}: Score:{self.score}: HighScore: {self.high_score}\n Ctr-c to Quit")
 
         if output == 1:
@@ -337,8 +346,6 @@ class AI(Game):
 
             self.add_ran_tiles()
 
-        if self.canPrintBoard:
-            print(f"ID: {self.id} Board: {self.board} \n")
             self.print_board()
 
         if round(output) == 0:
@@ -430,7 +437,7 @@ def clear_console():
         cmd('clear')
     else:
         print('\n' * 20)
-    
+
 def errorSave():
     for idx, ai in enumerate(AIs):
         saveAI(idx)
@@ -457,24 +464,6 @@ if __name__ == '__main__':
              print(f"{controller} is not allowed")
 
     while controller == "AI":
-        print()
-        print("Enable Board Displaytion? Warning! can slow application\n")
-        canPrint_Board = input("yes to accept or no to decline:\n")
-        try:
-            canPrint_Board = canPrint_Board.upper()
-            if canPrint_Board in ["YES", "NO"]:
-                if canPrint_Board == "YES":
-                    canPrint_Board = True
-                elif canPrint_Board == "No":
-                    canPrint_Board = False
-                clear_console()
-            else:
-                clear_console() 
-                print(f"{canPrint_Board} is Not an Option!"}
-        except ValueError:
-            clear_console()
-            print("Numbers Not Allowed!")
-        
         print()
         num_ais = input("Enter Number of Ais to Run:\n ")
         try:
@@ -517,13 +506,11 @@ if __name__ == '__main__':
             if ai_data:
                 weights, biases = ai_data
                 loaded_ai = AI(n+1, game)
-                loaded_ai.canPrintBoard = canPrint_Board
                 loaded_ai_weights = weights
                 loaded_ai_biases = biases
                 AIs.append(loaded_ai)
             else:
                 saved_ai = AI(n+1, game)
-                saved_ai.canPrintBoard = canPrint_Board
                 AIs.append(saved_ai)
 
     while (controller == "AI") and CAN_RUN:
@@ -532,12 +519,14 @@ if __name__ == '__main__':
                 try:
                     ai.output = ai.forward()
                     CAN_RUN = ai._update_game(ai.output)
+
                     if not CAN_RUN:
                         break
                 except Exception as e:
                     print(f"ERROR: {e}")
                     CAN_RUN = False
                     break
+            clear_console()
         except KeyboardInterrupt:
             print("\nProgram interrupted by user. Cleaning up and exiting...")
             errorSave()
