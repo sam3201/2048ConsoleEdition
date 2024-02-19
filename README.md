@@ -6,7 +6,10 @@
 ### Introducing AIs:
 - Train an AI
 - Save and Load
-
+- After Each update to 2048ConsoleEdition 
+      - if directory "Saved" exists:
+           rm -rf "Saved" or delete "Saved" directory from main/
+  
 ### BattleTheAi (GUI/CUI)
 - You Vs 2048 Ai CUI
 - You vs 2048 Ai w/ pygame? GUI
